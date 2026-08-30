@@ -1,0 +1,7 @@
+{
+  "name": "Dermacare Studio - Cosmetología & Diagnóstico Facial",
+  "description": "Plataforma integral de consultoría cosmetológica con diagnóstico cutáneo interactivo, generador de rutinas faciales con IA, gestión de citas y CRM clínico de pacientes.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
