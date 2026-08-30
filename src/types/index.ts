@@ -1,4 +1,4 @@
-export type SkinType = 'seca' | 'mixta' | 'grasa' | 'normal' | 'sensible';
+export type SkinType = 'seca' | 'mixta' | 'grasa' | 'normal' | 'sensible' | 'madura' | 'menopausica';
 
 export type SkinConcern = 
   | 'acne' 
@@ -8,7 +8,10 @@ export type SkinConcern =
   | 'rojeces_rosacea' 
   | 'poros_textura' 
   | 'falta_luminosidad' 
-  | 'ojeras_bolsas';
+  | 'ojeras_bolsas'
+  | 'piel_madura'
+  | 'menopausia_climaterio'
+  | 'flacidez_densidad';
 
 export type FitzpatrickType = 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI';
 
@@ -48,6 +51,8 @@ export interface RoutineStep {
   tips: string;
   productType: string;
   contraindications?: string[];
+  purchaseUrl?: string;
+  storeName?: string;
 }
 
 export interface PersonalizedRoutine {
@@ -142,12 +147,26 @@ export interface CosmeticProduct {
   id: string;
   name: string;
   brand: string;
-  category: 'Limpiador' | 'Sérum' | 'Crema Hidratante' | 'Protector Solar' | 'Exfoliante' | 'Aceite Facial' | 'Contorno de Ojos';
+  category: 'Limpiador' | 'Sérum' | 'Crema Hidratante' | 'Protector Solar' | 'Exfoliante' | 'Aceite Facial' | 'Contorno de Ojos' | 'Limpieza e Hidratación Facial Natural';
   mainActives: string[];
   skinTypes: SkinType[];
   concerns: SkinConcern[];
-  texture: 'Gel' | 'Crema' | 'Fluido Ligero' | 'Aceite' | 'Espuma';
+  texture: 'Gel' | 'Crema' | 'Fluido Ligero' | 'Aceite' | 'Espuma' | 'Bálsamo';
   usageTime: 'AM' | 'PM' | 'AM/PM';
   priceEstimated: string;
+  priceRange?: 'economico' | 'farmacia' | 'alta_cosmetica' | 'natural_eco';
+  certification?: string; // ej. 'COSMOS ORGANIC', 'NATRUE', 'ECOCERT', 'Dermofarmacia'
   description: string;
+  purchaseUrl?: string;
+  storeName?: string;
+  brandWebsite?: string;
 }
+
+export interface ProductSuggestion {
+  name: string;
+  tier?: string;
+  price?: string;
+  purchaseUrl?: string;
+  storeName?: string;
+}
+

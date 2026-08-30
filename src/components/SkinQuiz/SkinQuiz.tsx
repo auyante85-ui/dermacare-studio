@@ -22,7 +22,9 @@ import {
   HeartHandshake, 
   BookOpen, 
   SlidersHorizontal,
-  Calendar
+  Calendar,
+  Printer,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -95,7 +97,9 @@ export const SkinQuiz: React.FC<SkinQuizProps> = ({
   const computeDiagnosis = () => {
     let skinType: SkinType = 'mixta';
     const ans1 = answers['sensacion_manana'];
-    if (ans1 === 'opt_grasa') skinType = 'grasa';
+    if (ans1 === 'opt_madura') skinType = 'madura';
+    else if (ans1 === 'opt_menopausica') skinType = 'menopausica';
+    else if (ans1 === 'opt_grasa') skinType = 'grasa';
     else if (ans1 === 'opt_seca') skinType = 'seca';
     else if (ans1 === 'opt_normal') skinType = 'normal';
     else skinType = 'mixta';
@@ -104,7 +108,9 @@ export const SkinQuiz: React.FC<SkinQuizProps> = ({
     const ans2 = answers['sensibilidad_reaccion'];
     if (ans2 === 'sens_alta') {
       sens = 'alta';
-      skinType = 'sensible';
+      if (skinType !== 'madura' && skinType !== 'menopausica') {
+        skinType = 'sensible';
+      }
     } else if (ans2 === 'sens_baja') {
       sens = 'baja';
     } else {
@@ -251,38 +257,35 @@ export const SkinQuiz: React.FC<SkinQuizProps> = ({
                 </div>
               </div>
 
-              {/* Fitzpatrick Scale Selector */}
+              {/* Visual Phototype Tone Selector */}
               <div>
                 <label className="block text-xs font-semibold text-[#3C473E] uppercase tracking-wider mb-2">
-                  Fototipo Cutáneo (Escala Fitzpatrick)
+                  Tono de Piel y Respuesta al Sol
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {[
-                    { type: 'I', tone: 'Muy clara / Nórdica', desc: 'Siempre se quema, nunca se broncea' },
-                    { type: 'II', tone: 'Clara / Sensible', desc: 'Se quema con facilidad, mínimo bronceado' },
-                    { type: 'III', tone: 'Media / Mediterránea', desc: 'Se quema moderadamente, bronceado gradual' },
-                    { type: 'IV', tone: 'Morena clara', desc: 'Rara vez se quema, se broncea con facilidad' },
-                    { type: 'V', tone: 'Morena oscura', desc: 'Muy raro que se queme, pigmentación intensa' },
-                    { type: 'VI', tone: 'Negra / Muy oscura', desc: 'Nunca se quema, máxima melanina protectora' },
+                    { type: 'I', tone: 'Muy Clara / Piel Nórdica', desc: 'Se quema con facilidad, apenas se broncea' },
+                    { type: 'II', tone: 'Clara / Sensible', desc: 'Se quema primero, luego ligero bronceado' },
+                    { type: 'III', tone: 'Media / Mediterránea', desc: 'Bronceado gradual y uniforme con el sol' },
+                    { type: 'IV', tone: 'Morena / Dorada', desc: 'Rara vez se quema, pigmentación fácil' },
+                    { type: 'V', tone: 'Oscura / Intensa', desc: 'Muy resistente al sol, alta melanina natural' },
+                    { type: 'VI', tone: 'Muy Oscura', desc: 'Máxima protección natural, nunca se quema' },
                   ].map((item) => (
                     <button
                       key={item.type}
                       type="button"
                       onClick={() => setFitzpatrick(item.type as FitzpatrickType)}
-                      className={`p-3 rounded-2xl border text-left transition-all ${
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                         fitzpatrick === item.type
                           ? 'border-[#5A6B5D] bg-[#5A6B5D] text-white shadow-xs'
                           : 'border-[#E5E2D9] bg-[#F9F7F2] hover:border-[#B8B09F] text-[#1A1A1A]'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm">Fototipo {item.type}</span>
+                        <span className="font-bold text-sm">{item.tone}</span>
                         {fitzpatrick === item.type && <CheckCircle2 className="w-4 h-4 text-[#BAC7BC]" />}
                       </div>
-                      <p className={`text-xs mt-1 font-medium ${fitzpatrick === item.type ? 'text-[#E5ECE6]' : 'text-[#615C54]'}`}>
-                        {item.tone}
-                      </p>
-                      <p className={`text-[10px] mt-0.5 leading-tight ${fitzpatrick === item.type ? 'text-[#D8E0D9]' : 'text-[#78736B]'}`}>
+                      <p className={`text-[10px] mt-1 leading-tight ${fitzpatrick === item.type ? 'text-[#D8E0D9]' : 'text-[#78736B]'}`}>
                         {item.desc}
                       </p>
                     </button>
@@ -340,10 +343,12 @@ export const SkinQuiz: React.FC<SkinQuizProps> = ({
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {[
-                            { id: 'acne', label: 'Acné & Poros Obstruidos', desc: 'Comedones, exceso de sebo y textura irregular.' },
-                            { id: 'manchas_hiperpigmentacion', label: 'Manchas & Melasma', desc: 'Tono disparejo, marcas postinflamatorias y léntigos solares.' },
-                            { id: 'lineas_envejecimiento', label: 'Líneas & Pérdida de Firmeza', desc: 'Fotoenvejecimiento, flacidez y arrugas de expresión.' },
+                            { id: 'piel_madura', label: 'Piel Madura & Densidad', desc: 'Arrugas profundas, pérdida de firmeza dérmica y descolgamiento del óvalo facial.' },
+                            { id: 'menopausia_climaterio', label: 'Menopausia / Cambios Hormonales', desc: 'Sequedad extrema por caída de estrógenos, afinamiento, fragilidad y sofocos.' },
+                            { id: 'lineas_envejecimiento', label: 'Líneas & Pérdida de Firmeza', desc: 'Fotoenvejecimiento, microarrugas y pérdida de elasticidad.' },
                             { id: 'deshidratacion', label: 'Deshidratación & Piel Opaca', desc: 'Pérdida de agua, falta de luminosidad y tirantez.' },
+                            { id: 'manchas_hiperpigmentacion', label: 'Manchas & Melasma', desc: 'Tono disparejo, marcas postinflamatorias y léntigos solares.' },
+                            { id: 'acne', label: 'Acné & Poros Obstruidos', desc: 'Comedones, exceso de sebo y textura irregular.' },
                             { id: 'rojeces_rosacea', label: 'Rojeces & Sensibilidad Reactiva', desc: 'Cuperosis, ardor recurrente o tendencia a rosácea.' }
                           ].map((item) => {
                             const isSelected = selectedConcerns.includes(item.id as SkinConcern);
@@ -470,20 +475,30 @@ export const SkinQuiz: React.FC<SkinQuizProps> = ({
                   Perfil de Piel: {calculatedSkinType.toUpperCase()}
                 </h2>
                 <p className="text-xs sm:text-sm text-[#78736B] mt-1">
-                  Cliente: <strong className="text-[#1A1A1A]">{clientName}</strong> ({clientAge} años) | Fototipo Fitzpatrick {fitzpatrick}
+                  Cliente: <strong className="text-[#1A1A1A]">{clientName}</strong> ({clientAge} años) | Tono y Fototipo: {fitzpatrick}
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#D8D2C4] text-xs font-semibold text-[#3C473E] hover:bg-[#F2ECE0] cursor-pointer"
+                  title="Imprimir o Guardar como PDF"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Imprimir Ficha</span>
+                </button>
+
                 <button
                   onClick={() => {
                     setIsCompleted(false);
                     setCurrentStep(0);
                   }}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#D8D2C4] text-xs font-semibold text-[#3C473E] hover:bg-[#F2ECE0]"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#D8D2C4] text-xs font-semibold text-[#3C473E] hover:bg-[#F2ECE0] cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Repetir Quiz</span>
+                  <span>Nuevo Quiz</span>
                 </button>
               </div>
             </div>
@@ -499,6 +514,8 @@ export const SkinQuiz: React.FC<SkinQuizProps> = ({
                   Piel {calculatedSkinType}
                 </div>
                 <p className="text-xs text-[#615C54] mt-1">
+                  {calculatedSkinType === 'madura' && 'Disminución de colágeno, elastina y lípidos intercelulares con necesidad de redensificación y nutrición.'}
+                  {calculatedSkinType === 'menopausica' && 'Descenso estrogénico marcado, pérdida de densidad dérmica, sequedad acusada y propensión a reactividad o sofocos.'}
                   {calculatedSkinType === 'grasa' && 'Hiperfunción sebácea con tendencia a brillo y poro visible.'}
                   {calculatedSkinType === 'mixta' && 'Desbalance entre zona T oleosa y laterales deshidratados o normales.'}
                   {calculatedSkinType === 'seca' && 'Déficit de lípidos intercelulares y alta pérdida de agua transepidérmica.'}
@@ -525,13 +542,13 @@ export const SkinQuiz: React.FC<SkinQuizProps> = ({
               <div className="bg-[#F9F7F2] p-4 rounded-2xl border border-[#E5E2D9]">
                 <div className="flex items-center gap-2 text-xs font-semibold text-[#B5795D] uppercase">
                   <Sun className="w-4 h-4 text-[#B5795D]" />
-                  <span>Fototipo Fitzpatrick</span>
+                  <span>Tono & Fototipo Solar</span>
                 </div>
                 <div className="text-lg font-display font-bold text-[#1A1A1A] mt-1">
-                  Tipo {fitzpatrick}
+                  Fototipo {fitzpatrick}
                 </div>
                 <p className="text-xs text-[#615C54] mt-1">
-                  Índice de protección solar obligatorio FPS 50+ de amplio espectro diario para prevenir hiperpigmentaciones.
+                  Protección solar diaria recomendada para preservar el colágeno y prevenir la aparición de manchas.
                 </p>
               </div>
             </div>

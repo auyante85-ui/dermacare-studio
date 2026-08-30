@@ -14,9 +14,13 @@ import {
   Scale, 
   Baby, 
   Layers,
-  ArrowRightLeft
+  ArrowRightLeft,
+  ExternalLink,
+  ShoppingBag,
+  Globe
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { getProductBuyInfo } from '../../utils/productLinks';
 
 export const IngredientsCatalog: React.FC = () => {
   const [viewMode, setViewMode] = useState<'actives' | 'products' | 'matrix'>('actives');
@@ -40,13 +44,20 @@ export const IngredientsCatalog: React.FC = () => {
     return matchesSearch && matchesConcern && matchesSkin && matchesPregnancy;
   });
 
+  const [selectedPriceRange, setSelectedPriceRange] = useState<string>('todos');
+  const [selectedCategory, setSelectedCategory] = useState<string>('todos');
+
   // Filter Products
   const filteredProducts = COSMETIC_PRODUCTS.filter((prod) => {
     const matchesSearch = prod.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          prod.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           prod.mainActives.some(a => a.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesConcern = selectedConcern === 'todos' || prod.concerns.includes(selectedConcern as SkinConcern);
     const matchesSkin = selectedSkinType === 'todos' || prod.skinTypes.includes(selectedSkinType as SkinType);
-    return matchesSearch && matchesConcern && matchesSkin;
+    const matchesPrice = selectedPriceRange === 'todos' || prod.priceRange === selectedPriceRange;
+    const matchesCat = selectedCategory === 'todos' || 
+      (selectedCategory === 'natural' ? (prod.category === 'Limpieza e Hidratación Facial Natural' || prod.priceRange === 'natural_eco') : prod.category === selectedCategory);
+    return matchesSearch && matchesConcern && matchesSkin && matchesPrice && matchesCat;
   });
 
   // Matrix analysis logic
@@ -193,13 +204,13 @@ export const IngredientsCatalog: React.FC = () => {
       {/* FILTERS BAR (For Actives & Products) */}
       {viewMode !== 'matrix' && (
         <div className="bg-white border border-[#E5E2D9] rounded-3xl p-5 sm:p-6 mb-8 shadow-xs space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             {/* Search */}
-            <div className="relative">
+            <div className="relative sm:col-span-2">
               <Search className="w-4 h-4 text-[#78736B] absolute left-3.5 top-3" />
               <input
                 type="text"
-                placeholder="Buscar activo, INCI o beneficio..."
+                placeholder={viewMode === 'products' ? "Buscar por nombre, marca (ISDIN, Ziaja, Medik8...) o activo..." : "Buscar activo, INCI o beneficio..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-3.5 py-2 bg-[#F9F7F2] border border-[#D8D2C4] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#5A6B5D]"
@@ -214,10 +225,10 @@ export const IngredientsCatalog: React.FC = () => {
                 className="w-full px-3.5 py-2 bg-[#F9F7F2] border border-[#D8D2C4] rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#5A6B5D]"
               >
                 <option value="todos">Todas las Preocupaciones</option>
+                <option value="lineas_envejecimiento">Líneas & Arrugas Profundas</option>
+                <option value="deshidratacion">Deshidratación & Firmeza</option>
+                <option value="manchas_hiperpigmentacion">Manchas & Tono Irregular</option>
                 <option value="acne">Acné & Poros</option>
-                <option value="manchas_hiperpigmentacion">Manchas & Melasma</option>
-                <option value="lineas_envejecimiento">Líneas & Antiedad</option>
-                <option value="deshidratacion">Deshidratación & Barrera</option>
                 <option value="rojeces_rosacea">Rojeces & Rosácea</option>
               </select>
             </div>
@@ -230,30 +241,71 @@ export const IngredientsCatalog: React.FC = () => {
                 className="w-full px-3.5 py-2 bg-[#F9F7F2] border border-[#D8D2C4] rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#5A6B5D]"
               >
                 <option value="todos">Todos los Biotipos</option>
+                <option value="seca">Piel Seca / Madura</option>
                 <option value="mixta">Piel Mixta</option>
+                <option value="sensible">Piel Sensible / Reactiva</option>
                 <option value="grasa">Piel Grasa</option>
-                <option value="seca">Piel Seca</option>
-                <option value="sensible">Piel Sensible</option>
                 <option value="normal">Piel Normal</option>
               </select>
             </div>
           </div>
 
-          {/* Additional Checkbox Toggles */}
-          <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-[#E5E2D9] text-xs">
-            <label className="flex items-center gap-2 cursor-pointer text-[#3C473E] font-medium">
-              <input
-                type="checkbox"
-                checked={onlyPregnancySafe}
-                onChange={(e) => setOnlyPregnancySafe(e.target.checked)}
-                className="rounded border-[#D8D2C4] text-[#5A6B5D] focus:ring-[#5A6B5D]"
-              />
-              <span className="flex items-center gap-1.5">
-                <Baby className="w-3.5 h-3.5 text-[#5A6B5D]" />
-                Solo seguros durante Embarazo / Lactancia
-              </span>
-            </label>
-          </div>
+          {/* Product Categories and Philosophies */}
+          {viewMode === 'products' && (
+            <div className="pt-3 border-t border-[#E5E2D9] flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-[#3C473E]">Filosofía & Segmento:</span>
+                {[
+                  { id: 'todos', label: 'Todo el Catálogo' },
+                  { id: 'natural_eco', label: '🌿 Cosmética Natural & Bio' },
+                  { id: 'farmacia', label: 'Dermofarmacia Europea' },
+                  { id: 'alta_cosmetica', label: 'Cosmecéutica Avanzada' },
+                  { id: 'economico', label: 'Opciones Accesibles' }
+                ].map((tier) => (
+                  <button
+                    key={tier.id}
+                    onClick={() => setSelectedPriceRange(tier.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      selectedPriceRange === tier.id
+                        ? 'bg-[#5A6B5D] text-white shadow-2xs'
+                        : 'bg-[#F9F7F2] text-[#615C54] hover:bg-[#EAE5D9] border border-[#E5E2D9]'
+                    }`}
+                  >
+                    {tier.label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setSelectedCategory(selectedCategory === 'natural' ? 'todos' : 'natural')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  selectedCategory === 'natural'
+                    ? 'bg-emerald-800 text-white shadow-2xs'
+                    : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                }`}
+              >
+                <span>🌿 Limpieza & Hidratación Botánica</span>
+              </button>
+            </div>
+          )}
+
+          {/* Additional Checkbox Toggles for Actives */}
+          {viewMode === 'actives' && (
+            <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-[#E5E2D9] text-xs">
+              <label className="flex items-center gap-2 cursor-pointer text-[#3C473E] font-medium">
+                <input
+                  type="checkbox"
+                  checked={onlyPregnancySafe}
+                  onChange={(e) => setOnlyPregnancySafe(e.target.checked)}
+                  className="rounded border-[#D8D2C4] text-[#5A6B5D] focus:ring-[#5A6B5D]"
+                />
+                <span className="flex items-center gap-1.5">
+                  <Baby className="w-3.5 h-3.5 text-[#5A6B5D]" />
+                  Solo activos seguros en Embarazo / Lactancia
+                </span>
+              </label>
+            </div>
+          )}
         </div>
       )}
 
@@ -354,10 +406,32 @@ export const IngredientsCatalog: React.FC = () => {
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#5A6B5D]">
-                    {prod.category}
-                  </span>
-                  <span className="text-xs font-bold text-[#1A1A1A] bg-[#EAE5D9] px-2.5 py-0.5 rounded-full">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5A6B5D] bg-[#EFF4F0] px-2 py-0.5 rounded-md">
+                      {prod.category}
+                    </span>
+                    {prod.priceRange === 'natural_eco' && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
+                        🌿 {prod.certification || 'Natural / Bio'}
+                      </span>
+                    )}
+                    {prod.priceRange === 'economico' && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+                        🏷️ Low-Cost
+                      </span>
+                    )}
+                    {prod.priceRange === 'alta_cosmetica' && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-purple-800 bg-purple-100 px-2 py-0.5 rounded-md">
+                        ✨ Alta Cosmética
+                      </span>
+                    )}
+                    {prod.priceRange === 'farmacia' && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800 bg-blue-100 px-2 py-0.5 rounded-md">
+                        💊 Dermofarmacia
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-bold text-[#1A1A1A] bg-[#EAE5D9] px-2.5 py-0.5 rounded-full shrink-0">
                     {prod.priceEstimated}
                   </span>
                 </div>
@@ -367,7 +441,7 @@ export const IngredientsCatalog: React.FC = () => {
                     {prod.name}
                   </h4>
                   <span className="text-xs text-[#78736B] font-medium">
-                    {prod.brand} | Textura {prod.texture}
+                    {prod.brand} • Textura: {prod.texture}
                   </span>
                 </div>
 
@@ -389,9 +463,28 @@ export const IngredientsCatalog: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-[#E5E2D9] flex items-center justify-between text-xs text-[#78736B]">
-                <span>Uso: <strong className="text-[#1A1A1A]">{prod.usageTime}</strong></span>
-                <span className="capitalize">Biotipo: {prod.skinTypes.join(', ')}</span>
+              <div className="pt-4 mt-4 border-t border-[#E5E2D9] space-y-3">
+                <div className="flex items-center justify-between text-xs text-[#78736B]">
+                  <span>Uso: <strong className="text-[#1A1A1A]">{prod.usageTime}</strong></span>
+                  <span className="capitalize">Biotipo: {prod.skinTypes.join(', ')}</span>
+                </div>
+
+                {(() => {
+                  const buyInfo = getProductBuyInfo(prod.name, prod.brand, prod.purchaseUrl, prod.storeName);
+                  return (
+                    <a
+                      id={`buy-prod-catalog-${prod.id}`}
+                      href={buyInfo.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-[#2D3B2D] hover:bg-[#1E281E] text-white text-xs font-semibold rounded-xl transition-all shadow-xs hover:shadow group"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5 text-[#EAE5D9] group-hover:scale-110 transition-transform" />
+                      <span>Ver / Comprar ({buyInfo.storeName})</span>
+                      <ExternalLink className="w-3 h-3 text-[#BAC7BC] ml-auto" />
+                    </a>
+                  );
+                })()}
               </div>
             </motion.div>
           ))}
